@@ -24,7 +24,11 @@
     return s_manager;
 }
 
-
+- (void)deleteLocalFile
+{
+    NSString *localfile = [[self uploadDirWithName:@"chlog_local"]stringByAppendingPathComponent:@"chlogfile.txt"];
+    [[NSFileManager defaultManager]removeItemAtPath:localfile error:nil];
+}
 
 - (NSString *)logContents
 {
@@ -35,7 +39,7 @@
         contents = [NSMutableString string];
         for (NSString *path in logfilepathes) {
             NSError *error = nil;
-            NSString *file = [[self uploadDir]stringByAppendingPathComponent:path];
+            NSString *file = [[self uploadDirWithName:UPLOADLOGS_DIR_NAME]stringByAppendingPathComponent:path];
             NSString *fileContent = [NSString stringWithContentsOfFile:file encoding:NSUTF8StringEncoding error:&error];
             if (!error) {
                 [contents appendString:fileContent];
@@ -46,12 +50,36 @@
             }
         }
     }
+    
+    BOOL empty = (contents == nil || contents.length == 0 || [[contents stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] length] == 0);  //  同IsNullOrWhiteSpace
+    if (!empty) {
+//写入本地
+        NSString *localfile = [[self uploadDirWithName:@"chlog_local"]stringByAppendingPathComponent:@"chlogfile.txt"];
+       
+        NSFileHandle  *outFile;
+        NSData *buffer;
+        outFile = [NSFileHandle fileHandleForWritingAtPath:localfile];
+        if(outFile == nil)
+        {
+            NSLog(@"Open of file for writing failed");
+        }
+        
+        //找到并定位到outFile的末尾位置(在此后追加文件)
+        [outFile seekToEndOfFile];
+        
+        //读取inFile并且将其内容写到outFile中
+        buffer = [contents dataUsingEncoding:NSUTF8StringEncoding];
+        
+        [outFile writeData:buffer];
+        //关闭读写文件
+        [outFile closeFile];
+    }
     return contents;
 }
 
 - (void)inchlog:(NSString *)log
 {
-    NSString *writefile =[[self uploadDir] stringByAppendingPathComponent: [self writeFileName]];
+    NSString *writefile =[[self uploadDirWithName:UPLOADLOGS_DIR_NAME] stringByAppendingPathComponent: [self writeFileName]];
     BOOL write = [log writeToFile:writefile atomically:YES encoding:NSUTF8StringEncoding error:nil];
     if (write) {
         [self uploadLog:YES];
@@ -73,6 +101,7 @@
     BOOL empty = (logcontent == nil || logcontent.length == 0 || [[logcontent stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] length] == 0);  //  同IsNullOrWhiteSpace
     
     if (!empty) {
+//        存入服务器
         NSString *urlstr =[NSString stringWithFormat:UploadURLStr,IP,logcontent];
         NSURL *uploadURL = [NSURL URLWithString:[urlstr stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
         NSURLRequest *request = [NSURLRequest requestWithURL:uploadURL];
@@ -94,11 +123,11 @@
 }
 
 //临时文件目录
-- (NSString *)uploadDir
+- (NSString *)uploadDirWithName:(NSString *)name
 {
     //caches 路径,513 error ,permission deny
     NSString *caches = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject];
-    NSString *tempLog = [caches stringByAppendingPathComponent:UPLOADLOGS_DIR_NAME];
+    NSString *tempLog = [caches stringByAppendingPathComponent:name];
     
     //查看目录如果已经存在就直接返回路径，否则创建目录并返回路径，如果创建路径失败则返回nil
     if (![[NSFileManager defaultManager] fileExistsAtPath:tempLog isDirectory:nil])
@@ -119,7 +148,7 @@
 
 -(NSArray *)logFiles
 {
-    return [[NSFileManager defaultManager]contentsOfDirectoryAtPath:[self uploadDir] error:nil];
+    return [[NSFileManager defaultManager]contentsOfDirectoryAtPath:[self uploadDirWithName:UPLOADLOGS_DIR_NAME] error:nil];
 }
 
 -(NSString *)writeFileName
@@ -130,6 +159,7 @@
     [df setDateFormat:@"yyyy-MM-dd"];
     return [df stringFromDate:now];
 }
+
 
 
 @end
