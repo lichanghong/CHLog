@@ -9,7 +9,7 @@
 #import "CHLog.h"
 
 #define UPLOADLOGS_DIR_NAME  @"chlog"
-#define UploadURLStr @"http://10.17.28.36/index.php/user/savelog?log=%@"
+#define UploadURLStr @"http://%@/index.php/user/savelog?log=%@"
 
 
 @implementation CHLog
@@ -73,7 +73,7 @@
     BOOL empty = (logcontent == nil || logcontent.length == 0 || [[logcontent stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] length] == 0);  //  同IsNullOrWhiteSpace
     
     if (!empty) {
-        NSString *urlstr =[NSString stringWithFormat:UploadURLStr,logcontent];
+        NSString *urlstr =[NSString stringWithFormat:UploadURLStr,IP,logcontent];
         NSURL *uploadURL = [NSURL URLWithString:[urlstr stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
         NSURLRequest *request = [NSURLRequest requestWithURL:uploadURL];
         [[[NSURLSession sharedSession]dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {

@@ -8,6 +8,9 @@
 
 #import <Foundation/Foundation.h>
 
+//必填
+#define IP @"10.17.28.36"
+
 #define hhlog(FORMAT, ...) {\
 NSString *str = [NSString stringWithFormat:@"%s:%d [--%@--]",__func__, __LINE__,[NSString stringWithFormat:FORMAT, ##__VA_ARGS__]];\
 [[CHLog defaultLog]inchlog:str];}
@@ -17,10 +20,6 @@ NSString *str = [NSString stringWithFormat:@"%s:%d [--%@--]",__func__, __LINE__,
 
 + (instancetype)defaultLog;
 
-/**
- *@brief 上传日志接口
- */
-- (void)uploadLog;
 - (void)inchlog:(NSString *)log;
 /**
  *@brief 管理员查看日志内容，只看Logs文件夹下的log信息

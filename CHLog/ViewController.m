@@ -17,7 +17,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    for (int i=0; i<3; i++) {
+    for (int i=0; i<3000000000; i++) {
         hhlog(@"test %@  %d",@"chlog",i);
     }
     // Do any additional setup after loading the view, typically from a nib.
